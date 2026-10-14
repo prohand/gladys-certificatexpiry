@@ -14,6 +14,10 @@
 #
 # That is ALL it takes to "publish": tag, push, and the decentralized indexer
 # does the rest (no review, no account to create).
+#
+# Taken from prohand/gladys-devmel. GitHub lists a workflow in the Actions tab
+# only once an event reached it: a commit on main that changes this file is
+# what makes the "Run workflow" button appear on a new repository.
 # -----------------------------------------------------------------------------
 name: Build and publish image
 

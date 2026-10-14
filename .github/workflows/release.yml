@@ -14,6 +14,10 @@
 # Why call build.yml instead of relying on the tag push: a tag pushed with the
 # default GITHUB_TOKEN does NOT trigger other workflows, so we invoke the build
 # ourselves. No personal access token to create.
+#
+# Taken from prohand/gladys-devmel. GitHub lists a workflow in the Actions tab
+# only once an event reached it: a commit on main that changes this file is
+# what makes the "Run workflow" button appear on a new repository.
 # -----------------------------------------------------------------------------
 name: Release
 
