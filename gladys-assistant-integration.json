@@ -1,0 +1,709 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Certificate Expiry",
+  "description": {
+    "en": "Watch the TLS certificates of your sites and devices, and be warned before they expire.",
+    "fr": "Surveillez les certificats TLS de vos sites et appareils, et soyez averti avant expiration.",
+    "de": "Überwache die TLS-Zertifikate deiner Websites und Geräte und werde vor dem Ablauf gewarnt.",
+    "es": "Vigile los certificados TLS de sus sitios y equipos, con aviso antes de que caduquen."
+  },
+  "version": "1.0.0",
+  "docker_image": "ghcr.io/prohand/gladys-certificatexpiry:1.0.0",
+  "gladys_version": ">=5.1.0",
+  "cover_image": "https://raw.githubusercontent.com/prohand/gladys-certificatexpiry/main/cover.png",
+  "categories": ["network", "security"],
+  "transports": ["local"],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Getting started",
+        "fr": "Pour commencer",
+        "de": "Erste Schritte",
+        "es": "Primeros pasos"
+      },
+      "description": {
+        "en": "List the hosts whose certificate you want to watch: websites, NAS, router, reverse proxy, mail server... Each host becomes a device in the Discovery tab, with its days remaining, its expiry date and its issuer. The integration connects to each host directly (one TLS handshake, no HTTP request) and needs no account nor any cloud service.",
+        "fr": "Listez les hôtes dont vous voulez surveiller le certificat : sites web, NAS, box, reverse proxy, serveur mail... Chaque hôte devient un appareil dans l'onglet Découverte, avec ses jours restants, sa date d'expiration et son émetteur. L'intégration se connecte directement à chaque hôte (une négociation TLS, aucune requête HTTP) et n'a besoin d'aucun compte ni service cloud.",
+        "de": "Liste die Hosts auf, deren Zertifikat du überwachen willst: Websites, NAS, Router, Reverse Proxy, Mailserver... Jeder Host wird zu einem Gerät im Tab Erkennung, mit seinen verbleibenden Tagen, seinem Ablaufdatum und seinem Aussteller. Die Integration verbindet sich direkt mit jedem Host (ein TLS-Handshake, keine HTTP-Anfrage) und braucht weder Konto noch Cloud-Dienst.",
+        "es": "Indique los hosts cuyo certificado quiere vigilar: sitios web, NAS, router, proxy inverso, servidor de correo... Cada host se convierte en un dispositivo en la pestaña Descubrimiento, con sus días restantes, su fecha de caducidad y su emisor. La integración se conecta directamente a cada host (una negociación TLS, ninguna petición HTTP) y no necesita cuenta ni servicio en la nube."
+      },
+      "links": [
+        {
+          "url": "https://github.com/prohand/gladys-certificatexpiry/blob/main/docs/en.md",
+          "label": {
+            "en": "Integration documentation",
+            "fr": "Documentation de l'intégration",
+            "de": "Dokumentation der Integration",
+            "es": "Documentación de la integración"
+          }
+        }
+      ]
+    },
+    {
+      "key": "hosts",
+      "type": "string",
+      "label": {
+        "en": "Hosts",
+        "fr": "Hôtes",
+        "de": "Hosts",
+        "es": "Hosts"
+      },
+      "description": {
+        "en": "Separated by commas or spaces. A name, an IP address, name:port or a pasted https:// URL; the port is 443 when none is given. IPv6: [fe80::1]:8443.",
+        "fr": "Séparés par des virgules ou des espaces. Un nom, une adresse IP, nom:port ou une URL https:// collée ; le port est 443 s'il n'est pas indiqué. IPv6 : [fe80::1]:8443.",
+        "de": "Durch Kommas oder Leerzeichen getrennt. Ein Name, eine IP-Adresse, name:port oder eine eingefügte https://-URL; ohne Angabe ist der Port 443. IPv6: [fe80::1]:8443.",
+        "es": "Separados por comas o espacios. Un nombre, una dirección IP, nombre:puerto o una URL https:// pegada; el puerto es 443 si no se indica. IPv6: [fe80::1]:8443."
+      },
+      "placeholder": {
+        "en": "example.com, nas.local:5001, 192.168.1.1:8443",
+        "fr": "exemple.fr, nas.local:5001, 192.168.1.1:8443",
+        "de": "beispiel.de, nas.local:5001, 192.168.1.1:8443",
+        "es": "ejemplo.es, nas.local:5001, 192.168.1.1:8443"
+      },
+      "required": true
+    },
+    {
+      "key": "warning_days",
+      "type": "number",
+      "label": {
+        "en": "Warning threshold (days)",
+        "fr": "Seuil d'alerte (jours)",
+        "de": "Warnschwelle (Tage)",
+        "es": "Umbral de aviso (días)"
+      },
+      "description": {
+        "en": "A certificate with this many days left or fewer is \"expiring soon\".",
+        "fr": "Un certificat qui a ce nombre de jours restants ou moins « expire bientôt ».",
+        "de": "Ein Zertifikat mit so vielen verbleibenden Tagen oder weniger „läuft bald ab“.",
+        "es": "Un certificado con estos días restantes o menos «caduca pronto»."
+      },
+      "required": false,
+      "default": 30,
+      "min": 1,
+      "max": 365
+    },
+    {
+      "key": "critical_days",
+      "type": "number",
+      "label": {
+        "en": "Critical threshold (days)",
+        "fr": "Seuil critique (jours)",
+        "de": "Kritische Schwelle (Tage)",
+        "es": "Umbral crítico (días)"
+      },
+      "description": {
+        "en": "A certificate with this many days left or fewer is \"critical\". Lower than the warning threshold.",
+        "fr": "Un certificat qui a ce nombre de jours restants ou moins est « critique ». Plus bas que le seuil d'alerte.",
+        "de": "Ein Zertifikat mit so vielen verbleibenden Tagen oder weniger ist „kritisch“. Niedriger als die Warnschwelle.",
+        "es": "Un certificado con estos días restantes o menos es «crítico». Menor que el umbral de aviso."
+      },
+      "required": false,
+      "default": 7,
+      "min": 0,
+      "max": 365
+    },
+    {
+      "key": "check_interval",
+      "type": "number",
+      "label": {
+        "en": "Check interval (hours)",
+        "fr": "Intervalle de vérification (heures)",
+        "de": "Prüfintervall (Stunden)",
+        "es": "Intervalo de comprobación (horas)"
+      },
+      "description": {
+        "en": "How often every host is checked. A check also runs at startup and when the configuration is saved.",
+        "fr": "Fréquence de vérification de chaque hôte. Une vérification a aussi lieu au démarrage et à l'enregistrement de la configuration.",
+        "de": "Wie oft jeder Host geprüft wird. Eine Prüfung läuft auch beim Start und beim Speichern der Konfiguration.",
+        "es": "Frecuencia de comprobación de cada host. También se comprueba al arrancar y al guardar la configuración."
+      },
+      "required": false,
+      "default": 12,
+      "min": 1,
+      "max": 168
+    },
+    {
+      "key": "timeout_seconds",
+      "type": "number",
+      "label": {
+        "en": "Connection timeout (s)",
+        "fr": "Délai de connexion (s)",
+        "de": "Verbindungs-Timeout (s)",
+        "es": "Tiempo de espera de conexión (s)"
+      },
+      "description": {
+        "en": "Time allowed to reach a host and read its certificate. Past it, the host is unreachable.",
+        "fr": "Temps accordé pour joindre un hôte et lire son certificat. Au-delà, l'hôte est injoignable.",
+        "de": "Zeit, um einen Host zu erreichen und sein Zertifikat zu lesen. Danach gilt er als nicht erreichbar.",
+        "es": "Tiempo para alcanzar un host y leer su certificado. Pasado ese tiempo, el host es inaccesible."
+      },
+      "required": false,
+      "default": 10,
+      "min": 2,
+      "max": 60
+    },
+    {
+      "key": "check_trust",
+      "type": "boolean",
+      "label": {
+        "en": "Report untrusted certificates",
+        "fr": "Signaler les certificats non reconnus",
+        "de": "Nicht vertrauenswürdige Zertifikate melden",
+        "es": "Señalar los certificados no fiables"
+      },
+      "description": {
+        "en": "Also report a certificate that no public authority signed (self-signed, private CA) or that does not match the host name. Turn it off if your local devices use self-signed certificates: their expiry is still watched.",
+        "fr": "Signale aussi un certificat qu'aucune autorité publique n'a signé (auto-signé, AC privée) ou qui ne correspond pas au nom de l'hôte. Désactivez-le si vos appareils locaux utilisent des certificats auto-signés : leur expiration reste surveillée.",
+        "de": "Meldet auch ein Zertifikat, das keine öffentliche Stelle signiert hat (selbstsigniert, private CA) oder das nicht zum Hostnamen passt. Schalte es aus, wenn deine lokalen Geräte selbstsignierte Zertifikate nutzen: ihr Ablauf wird weiter überwacht.",
+        "es": "Señala también un certificado que ninguna autoridad pública ha firmado (autofirmado, CA privada) o que no corresponde al nombre del host. Desactívelo si sus equipos locales usan certificados autofirmados: su caducidad sigue vigilada."
+      },
+      "required": false,
+      "default": true
+    }
+  ],
+  "actions": [
+    {
+      "key": "check_now",
+      "label": {
+        "en": "Check now",
+        "fr": "Vérifier maintenant",
+        "de": "Jetzt prüfen",
+        "es": "Comprobar ahora"
+      },
+      "timeout_seconds": 120
+    },
+    {
+      "key": "inspect_host",
+      "label": {
+        "en": "Inspect a host",
+        "fr": "Inspecter un hôte",
+        "de": "Host untersuchen",
+        "es": "Inspeccionar un host"
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "host",
+          "type": "string",
+          "label": {
+            "en": "Host",
+            "fr": "Hôte",
+            "de": "Host",
+            "es": "Host"
+          },
+          "description": {
+            "en": "Any host, watched or not: its certificate is read once and shown in full.",
+            "fr": "N'importe quel hôte, surveillé ou non : son certificat est lu une fois et affiché en entier.",
+            "de": "Beliebiger Host, überwacht oder nicht: Sein Zertifikat wird einmal gelesen und vollständig angezeigt.",
+            "es": "Cualquier host, vigilado o no: su certificado se lee una vez y se muestra completo."
+          },
+          "placeholder": {
+            "en": "example.com:443",
+            "fr": "exemple.fr:443",
+            "de": "beispiel.de:443",
+            "es": "ejemplo.es:443"
+          },
+          "required": true
+        }
+      ]
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "certificate_expiring",
+      "label": {
+        "en": "A certificate is expiring",
+        "fr": "Un certificat arrive à expiration",
+        "de": "Ein Zertifikat läuft ab",
+        "es": "Un certificado está caducando"
+      },
+      "description": {
+        "en": "A certificate entered the warning or the critical window, or expired. Fires once per change of level.",
+        "fr": "Un certificat est entré dans la période d'alerte ou critique, ou a expiré. Se déclenche une fois par changement de niveau.",
+        "de": "Ein Zertifikat hat den Warn- oder kritischen Zeitraum erreicht oder ist abgelaufen. Löst einmal pro Stufenwechsel aus.",
+        "es": "Un certificado entró en el periodo de aviso o crítico, o caducó. Se activa una vez por cambio de nivel."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Certificate",
+            "fr": "Certificat",
+            "de": "Zertifikat",
+            "es": "Certificado"
+          },
+          "required": false
+        },
+        {
+          "key": "level",
+          "type": "multi_select",
+          "label": {
+            "en": "Level",
+            "fr": "Niveau",
+            "de": "Stufe",
+            "es": "Nivel"
+          },
+          "options": [
+            {
+              "value": "warning",
+              "label": {
+                "en": "Expiring soon",
+                "fr": "Expire bientôt",
+                "de": "Läuft bald ab",
+                "es": "Caduca pronto"
+              }
+            },
+            {
+              "value": "critical",
+              "label": {
+                "en": "Critical",
+                "fr": "Critique",
+                "de": "Kritisch",
+                "es": "Crítico"
+              }
+            },
+            {
+              "value": "expired",
+              "label": {
+                "en": "Expired",
+                "fr": "Expiré",
+                "de": "Abgelaufen",
+                "es": "Caducado"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "host",
+          "type": "string",
+          "label": {
+            "en": "Host",
+            "fr": "Hôte",
+            "de": "Host",
+            "es": "Host"
+          }
+        },
+        {
+          "key": "level",
+          "type": "string",
+          "label": {
+            "en": "Level",
+            "fr": "Niveau",
+            "de": "Stufe",
+            "es": "Nivel"
+          }
+        },
+        {
+          "key": "days_remaining",
+          "type": "number",
+          "label": {
+            "en": "Days remaining",
+            "fr": "Jours restants",
+            "de": "Verbleibende Tage",
+            "es": "Días restantes"
+          }
+        },
+        {
+          "key": "expires_at",
+          "type": "string",
+          "label": {
+            "en": "Expiry date",
+            "fr": "Date d'expiration",
+            "de": "Ablaufdatum",
+            "es": "Fecha de caducidad"
+          }
+        },
+        {
+          "key": "issuer",
+          "type": "string",
+          "label": {
+            "en": "Issuer",
+            "fr": "Émetteur",
+            "de": "Aussteller",
+            "es": "Emisor"
+          }
+        }
+      ]
+    },
+    {
+      "key": "certificate_renewed",
+      "label": {
+        "en": "A certificate was renewed",
+        "fr": "Un certificat a été renouvelé",
+        "de": "Ein Zertifikat wurde erneuert",
+        "es": "Se ha renovado un certificado"
+      },
+      "description": {
+        "en": "A host now presents a new certificate that runs longer than the previous one.",
+        "fr": "Un hôte présente un nouveau certificat qui dure plus longtemps que le précédent.",
+        "de": "Ein Host zeigt ein neues Zertifikat, das länger gilt als das vorherige.",
+        "es": "Un host presenta un certificado nuevo que dura más que el anterior."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Certificate",
+            "fr": "Certificat",
+            "de": "Zertifikat",
+            "es": "Certificado"
+          },
+          "required": false
+        }
+      ],
+      "variables": [
+        {
+          "key": "host",
+          "type": "string",
+          "label": {
+            "en": "Host",
+            "fr": "Hôte",
+            "de": "Host",
+            "es": "Host"
+          }
+        },
+        {
+          "key": "days_remaining",
+          "type": "number",
+          "label": {
+            "en": "Days remaining",
+            "fr": "Jours restants",
+            "de": "Verbleibende Tage",
+            "es": "Días restantes"
+          }
+        },
+        {
+          "key": "expires_at",
+          "type": "string",
+          "label": {
+            "en": "New expiry date",
+            "fr": "Nouvelle date d'expiration",
+            "de": "Neues Ablaufdatum",
+            "es": "Nueva fecha de caducidad"
+          }
+        },
+        {
+          "key": "previous_expires_at",
+          "type": "string",
+          "label": {
+            "en": "Previous expiry date",
+            "fr": "Ancienne date d'expiration",
+            "de": "Bisheriges Ablaufdatum",
+            "es": "Fecha de caducidad anterior"
+          }
+        },
+        {
+          "key": "issuer",
+          "type": "string",
+          "label": {
+            "en": "Issuer",
+            "fr": "Émetteur",
+            "de": "Aussteller",
+            "es": "Emisor"
+          }
+        }
+      ]
+    },
+    {
+      "key": "certificate_check_failed",
+      "label": {
+        "en": "A certificate check failed",
+        "fr": "La vérification d'un certificat a échoué",
+        "de": "Eine Zertifikatsprüfung ist fehlgeschlagen",
+        "es": "Ha fallado la comprobación de un certificado"
+      },
+      "description": {
+        "en": "A host stopped answering, or presented a certificate the system does not trust. Fires once, when the problem appears.",
+        "fr": "Un hôte ne répond plus, ou présente un certificat que le système ne reconnaît pas. Se déclenche une fois, quand le problème apparaît.",
+        "de": "Ein Host antwortet nicht mehr oder zeigt ein Zertifikat, dem das System nicht vertraut. Löst einmal aus, wenn das Problem auftritt.",
+        "es": "Un host dejó de responder, o presenta un certificado que el sistema no considera fiable. Se activa una vez, cuando aparece el problema."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Certificate",
+            "fr": "Certificat",
+            "de": "Zertifikat",
+            "es": "Certificado"
+          },
+          "required": false
+        },
+        {
+          "key": "reason",
+          "type": "multi_select",
+          "label": {
+            "en": "Problem",
+            "fr": "Problème",
+            "de": "Problem",
+            "es": "Problema"
+          },
+          "options": [
+            {
+              "value": "unreachable",
+              "label": {
+                "en": "Host unreachable",
+                "fr": "Hôte injoignable",
+                "de": "Host nicht erreichbar",
+                "es": "Host inaccesible"
+              }
+            },
+            {
+              "value": "untrusted",
+              "label": {
+                "en": "Certificate not trusted",
+                "fr": "Certificat non reconnu",
+                "de": "Zertifikat nicht vertrauenswürdig",
+                "es": "Certificado no fiable"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "host",
+          "type": "string",
+          "label": {
+            "en": "Host",
+            "fr": "Hôte",
+            "de": "Host",
+            "es": "Host"
+          }
+        },
+        {
+          "key": "reason",
+          "type": "string",
+          "label": {
+            "en": "Problem",
+            "fr": "Problème",
+            "de": "Problem",
+            "es": "Problema"
+          }
+        },
+        {
+          "key": "error",
+          "type": "string",
+          "label": {
+            "en": "Error code",
+            "fr": "Code d'erreur",
+            "de": "Fehlercode",
+            "es": "Código de error"
+          }
+        },
+        {
+          "key": "message",
+          "type": "string",
+          "label": {
+            "en": "Error message",
+            "fr": "Message d'erreur",
+            "de": "Fehlermeldung",
+            "es": "Mensaje de error"
+          }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "check_certificate",
+      "label": {
+        "en": "Check a certificate",
+        "fr": "Vérifier un certificat",
+        "de": "Zertifikat prüfen",
+        "es": "Comprobar un certificado"
+      },
+      "description": {
+        "en": "Read the certificate of one host now, and give its days remaining to the next actions.",
+        "fr": "Lit maintenant le certificat d'un hôte, et donne ses jours restants aux actions suivantes.",
+        "de": "Liest jetzt das Zertifikat eines Hosts und gibt seine verbleibenden Tage an die nächsten Aktionen weiter.",
+        "es": "Lee ahora el certificado de un host y pasa sus días restantes a las acciones siguientes."
+      },
+      "timeout_seconds": 60,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": {
+            "en": "Certificate",
+            "fr": "Certificat",
+            "de": "Zertifikat",
+            "es": "Certificado"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "days_remaining",
+          "type": "number",
+          "label": {
+            "en": "Days remaining",
+            "fr": "Jours restants",
+            "de": "Verbleibende Tage",
+            "es": "Días restantes"
+          }
+        },
+        {
+          "key": "expires_at",
+          "type": "string",
+          "label": {
+            "en": "Expiry date",
+            "fr": "Date d'expiration",
+            "de": "Ablaufdatum",
+            "es": "Fecha de caducidad"
+          }
+        },
+        {
+          "key": "level",
+          "type": "string",
+          "label": {
+            "en": "Level",
+            "fr": "Niveau",
+            "de": "Stufe",
+            "es": "Nivel"
+          }
+        },
+        {
+          "key": "reachable",
+          "type": "boolean",
+          "label": {
+            "en": "Host reachable",
+            "fr": "Hôte joignable",
+            "de": "Host erreichbar",
+            "es": "Host accesible"
+          }
+        },
+        {
+          "key": "trusted",
+          "type": "boolean",
+          "label": {
+            "en": "Certificate trusted",
+            "fr": "Certificat reconnu",
+            "de": "Zertifikat vertrauenswürdig",
+            "es": "Certificado fiable"
+          }
+        }
+      ]
+    },
+    {
+      "key": "check_all_certificates",
+      "label": {
+        "en": "Check all certificates",
+        "fr": "Vérifier tous les certificats",
+        "de": "Alle Zertifikate prüfen",
+        "es": "Comprobar todos los certificados"
+      },
+      "description": {
+        "en": "Read every certificate now, and count the ones to look at.",
+        "fr": "Lit maintenant tous les certificats, et compte ceux à regarder.",
+        "de": "Liest jetzt alle Zertifikate und zählt die, die Aufmerksamkeit brauchen.",
+        "es": "Lee ahora todos los certificados y cuenta los que hay que revisar."
+      },
+      "timeout_seconds": 120,
+      "outputs": [
+        {
+          "key": "checked",
+          "type": "number",
+          "label": {
+            "en": "Certificates checked",
+            "fr": "Certificats vérifiés",
+            "de": "Geprüfte Zertifikate",
+            "es": "Certificados comprobados"
+          }
+        },
+        {
+          "key": "expiring",
+          "type": "number",
+          "label": {
+            "en": "Expiring or expired",
+            "fr": "À renouveler ou expirés",
+            "de": "Ablaufend oder abgelaufen",
+            "es": "Por renovar o caducados"
+          }
+        },
+        {
+          "key": "problems",
+          "type": "number",
+          "label": {
+            "en": "Unreachable or untrusted",
+            "fr": "Injoignables ou non reconnus",
+            "de": "Nicht erreichbar oder nicht vertrauenswürdig",
+            "es": "Inaccesibles o no fiables"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "certificates",
+      "label": {
+        "en": "Certificates",
+        "fr": "Certificats",
+        "de": "Zertifikate",
+        "es": "Certificados"
+      },
+      "description": {
+        "en": "Valid, expiring and failing certificates, the most urgent first.",
+        "fr": "Certificats valides, à renouveler et en erreur, les plus urgents d'abord.",
+        "de": "Gültige, ablaufende und fehlerhafte Zertifikate, die dringendsten zuerst.",
+        "es": "Certificados válidos, por renovar y con error, los más urgentes primero."
+      },
+      "icon": "shield",
+      "settings": [
+        {
+          "key": "max_items",
+          "type": "number",
+          "label": {
+            "en": "Rows shown",
+            "fr": "Lignes affichées",
+            "de": "Angezeigte Zeilen",
+            "es": "Filas mostradas"
+          },
+          "description": {
+            "en": "How many certificates the list shows (1 to 10).",
+            "fr": "Nombre de certificats listés (1 à 10).",
+            "de": "Wie viele Zertifikate die Liste zeigt (1 bis 10).",
+            "es": "Cuántos certificados muestra la lista (1 a 10)."
+          },
+          "required": false,
+          "default": 8,
+          "min": 1,
+          "max": 10
+        },
+        {
+          "key": "problems_only",
+          "type": "boolean",
+          "label": {
+            "en": "Only what needs attention",
+            "fr": "Seulement ce qui demande attention",
+            "de": "Nur was Aufmerksamkeit braucht",
+            "es": "Solo lo que requiere atención"
+          },
+          "description": {
+            "en": "Hide the certificates that are fine.",
+            "fr": "Masque les certificats en ordre.",
+            "de": "Blendet die Zertifikate aus, die in Ordnung sind.",
+            "es": "Oculta los certificados que están bien."
+          },
+          "required": false,
+          "default": false
+        }
+      ],
+      "action_timeout_seconds": 120
+    }
+  ]
+}
