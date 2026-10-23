@@ -8,8 +8,8 @@
     "de": "Überwache die TLS-Zertifikate deiner Websites und Geräte und werde vor dem Ablauf gewarnt.",
     "es": "Vigile los certificados TLS de sus sitios y equipos, con aviso antes de que caduquen."
   },
-  "version": "1.0.1",
-  "docker_image": "ghcr.io/prohand/gladys-certificatexpiry:1.0.1",
+  "version": "1.0.2",
+  "docker_image": "ghcr.io/prohand/gladys-certificatexpiry:1.0.2",
   "gladys_version": ">=5.1.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-certificatexpiry/main/cover.png",
   "categories": ["network", "security"],
