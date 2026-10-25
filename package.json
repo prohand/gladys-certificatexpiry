@@ -1,6 +1,6 @@
 {
   "name": "gladys-certificatexpiry",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "private": true,
   "description": "Gladys Assistant external integration that watches the expiry date of TLS certificates.",
   "type": "module",
