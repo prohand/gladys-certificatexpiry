@@ -9,6 +9,8 @@ Verbindung geschlossen. Keine HTTP-Anfrage, kein Konto, kein Cloud-Dienst. Das
 funktioniert für öffentliche Websites ebenso wie für Geräte in deinem lokalen
 Netzwerk.
 
+Erfordert **Gladys 5.3.0** oder neuer.
+
 ## Einrichtung
 
 1. Installiere die Integration aus dem Gladys-Store.

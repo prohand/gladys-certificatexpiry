@@ -10,9 +10,20 @@
   },
   "version": "1.0.2",
   "docker_image": "ghcr.io/prohand/gladys-certificatexpiry:1.0.2",
-  "gladys_version": ">=5.1.0",
+  "gladys_version": ">=5.3.0",
   "cover_image": "https://raw.githubusercontent.com/prohand/gladys-certificatexpiry/main/cover.png",
-  "categories": ["network", "security"],
+  "categories": ["servers", "security", "network"],
+  "keywords": [
+    "ssl",
+    "https",
+    "x509",
+    "let's encrypt",
+    "expiration",
+    "renewal",
+    "reverse proxy",
+    "nas",
+    "website monitoring"
+  ],
   "transports": ["local"],
   "config_schema": [
     {

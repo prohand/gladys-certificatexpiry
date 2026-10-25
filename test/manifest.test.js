@@ -40,6 +40,30 @@ const allFields = [
 const CAPABILITY_FIELDS = ['scene_triggers', 'scene_actions', 'widgets'];
 const CAPABILITY_MIN_GLADYS_VERSION = [5, 1, 0];
 const CATEGORIES_MIN_GLADYS_VERSION = [4, 86, 0];
+// `keywords`, `countries` and `music` are unknown to the cores before 5.3.0,
+// which reject the whole manifest over an unknown field.
+const CATALOG_SEARCH_FIELDS = ['keywords', 'countries', 'music'];
+const CATALOG_SEARCH_MIN_GLADYS_VERSION = [5, 3, 0];
+// The store's controlled vocabulary (2026-10). An unknown key is not refused,
+// it is dropped with a warning: a typo would silently cost a shelf.
+const CATALOG_CATEGORIES = [
+  'climate',
+  'lighting',
+  'energy',
+  'security',
+  'multimedia',
+  'appliances',
+  'environment',
+  'protocols',
+  'network',
+  'notifications',
+  'assistants',
+  'services',
+  'transport',
+  'vehicles',
+  'servers',
+  'leisure',
+];
 
 const keysOf = (list) => (list ?? []).map((entry) => entry.key);
 
@@ -81,7 +105,38 @@ test('every scene trigger the code fires is declared in scene_triggers, and vice
 
 test('declaring catalog categories requires Gladys >= 4.86.0', () => {
   assert.ok(manifest.categories.length >= 1 && manifest.categories.length <= 3);
+  assert.equal(new Set(manifest.categories).size, manifest.categories.length);
+  for (const category of manifest.categories) {
+    assert.ok(CATALOG_CATEGORIES.includes(category), `unknown catalog category "${category}"`);
+  }
   assert.ok(isAtLeast(minGladysVersion(), CATEGORIES_MIN_GLADYS_VERSION));
+});
+
+test('the search keywords are 1 to 10 unique terms of 2 to 30 characters', () => {
+  assert.ok(Array.isArray(manifest.keywords));
+  assert.ok(manifest.keywords.length >= 1 && manifest.keywords.length <= 10);
+  const normalized = manifest.keywords.map((keyword) => keyword.trim().toLowerCase());
+  assert.equal(new Set(normalized).size, normalized.length, 'keywords must be unique');
+  for (const keyword of manifest.keywords) {
+    assert.equal(typeof keyword, 'string');
+    const { length } = keyword.trim();
+    assert.ok(length >= 2 && length <= 30, `keyword "${keyword}" has ${length} characters`);
+  }
+});
+
+test('the integration is not restricted to some countries', () => {
+  // A TLS handshake works the same everywhere: declaring countries would hide
+  // the integration from the catalog of every other country.
+  assert.equal(manifest.countries, undefined);
+});
+
+test('declaring keywords, countries or music requires Gladys >= 5.3.0', () => {
+  const declared = CATALOG_SEARCH_FIELDS.filter((field) => manifest[field] !== undefined);
+  assert.ok(declared.length > 0);
+  assert.ok(
+    isAtLeast(minGladysVersion(), CATALOG_SEARCH_MIN_GLADYS_VERSION),
+    `${declared.join(', ')} requires gladys_version >= 5.3.0, got "${manifest.gladys_version}"`,
+  );
 });
 
 test('declaring scene triggers, scene actions or widgets requires Gladys >= 5.1.0', () => {

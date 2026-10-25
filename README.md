@@ -22,7 +22,7 @@ before they expire.
 User documentation: [English](docs/en.md) · [Français](docs/fr.md) ·
 [Deutsch](docs/de.md) · [Español](docs/es.md).
 
-Requires **Gladys 5.1.0** or later.
+Requires **Gladys 5.3.0** or later.
 
 ## Project structure
 

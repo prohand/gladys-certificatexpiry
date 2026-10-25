@@ -8,6 +8,8 @@ Gladys : une négociation TLS, le certificat est lu, la connexion est fermée.
 Aucune requête HTTP, aucun compte, aucun service cloud. Elle fonctionne aussi
 bien pour les sites publics que pour les appareils de votre réseau local.
 
+Nécessite **Gladys 5.3.0** ou plus récent.
+
 ## Installation
 
 1. Installez l'intégration depuis le store Gladys.
