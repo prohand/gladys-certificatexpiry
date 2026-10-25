@@ -25,12 +25,13 @@ node --test --test-name-pattern "renewal"    # tests whose name matches
 npm run lint                                 # eslint .
 npm run format:check                         # prettier --check . (CI gate)
 npm run format                               # prettier --write .
-npx github:GladysAssistant/integration-store .   # store admission checks
+npx github:GladysAssistant/integration-store --skip-image-check .   # store checks
 ```
 
 The CI (`.github/workflows/ci.yml`) runs `format:check`, `lint` and `test` on
-Node 22 and 24; pull requests also run the store checks and build the Docker
-image. Run the three commands before pushing.
+Node 22 and 24; pull requests also run the store checks (image skipped: the
+Release workflow re-runs them in full once the image is published) and build
+the Docker image. Run the three commands before pushing.
 
 ## Architecture
 
@@ -91,9 +92,11 @@ endpoint.id)` with `endpoint.id = <host>-<port>` (no colon: feature ids are
   Never write a version heading: the Release workflow moves the section.
 - **Manifest.** Every `label`, `description` and `placeholder` is
   `{ en, fr, de, es }`, never a plain string; the catalog `description` holds
-  10 to 100 characters per language. `test/manifest.test.js` ties the manifest
-  to the code (defaults, action, scene, trigger and widget keys): change both
-  sides together.
+  10 to 100 characters per language. `gladys_version` is `>=5.3.0`: the
+  `keywords` field (catalog search) needs it, the scene and widget fields need
+  5.1.0. No `countries`: a TLS handshake works everywhere. `test/manifest.test.js`
+  ties the manifest to the code (defaults, action, scene, trigger and widget
+  keys, categories, keywords): change both sides together.
 - **User-facing text** is written in the four languages of `src/i18n.js`:
   action answers, widget, connection status, transport messages, and
   `docs/*.md`, kept in sync.

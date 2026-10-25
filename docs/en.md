@@ -8,6 +8,8 @@ TLS handshake, the certificate is read, the connection is closed. No HTTP
 request, no account, no cloud service. It works for public websites as well as
 for devices on your local network.
 
+Requires **Gladys 5.3.0** or later.
+
 ## Setup
 
 1. Install the integration from the Gladys store.
