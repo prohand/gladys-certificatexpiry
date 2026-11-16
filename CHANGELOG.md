@@ -10,6 +10,10 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-11-16
+
+- Maintenance release, no functional change.
+
 ## [1.1.0] - 2026-10-25
 
 ### Added
@@ -54,7 +58,8 @@ the notes of the version's GitHub Release.
   pull requests), UI-driven Release workflow, GitHub Releases, Dependabot.
 - `SECURITY.md`, `CHANGELOG.md` and `CLAUDE.md`.
 
-[Unreleased]: https://github.com/prohand/gladys-certificatexpiry/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/prohand/gladys-certificatexpiry/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/prohand/gladys-certificatexpiry/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/prohand/gladys-certificatexpiry/compare/v1.0.2...v1.1.0
 [1.0.2]: https://github.com/prohand/gladys-certificatexpiry/compare/v1.0.1...v1.0.2
 [1.0.1]: https://github.com/prohand/gladys-certificatexpiry/releases/tag/v1.0.1
